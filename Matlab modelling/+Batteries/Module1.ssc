@@ -1,0 +1,190 @@
+component Module1
+    % Module1:2
+    % Module Block
+    %    Model resolution: Detailed
+    %    Number of parallel assemblies: 12
+    %    Number of cells per parallel assembly: 2
+    %
+    %
+    %    Inter-cell heat transfer: on
+    %    Inter-cell radiation heat transfer: on
+    %    Number of inter-cell thermal connections: 12
+    %    Number of inter-parallel assembly thermal connections: 11
+    %
+    %    MATLAB version: 23.2
+    %    Simscape Battery version: 23.2
+    %    Simscape code generated on: 21-Mar-2024 13:54:18
+
+    parameters
+        SOC_vecCell = {[0, .1, .25, .5, .75, .9, 1],'1'}; % Vector of state-of-charge values, SOC
+        V0_vecCell = {[3.5057, 3.566, 3.6337, 3.7127, 3.9259, 4.0777, 4.1928],'V'}; % Open-circuit voltage, V0(SOC)
+        V_rangeCell = {[0, inf],'V'}; % Terminal voltage operating range [Min Max]
+        R0_vecCell = {[.0085, .0085, .0087, .0082, .0083, .0085, .0085],'Ohm'}; % Terminal resistance, R0(SOC)
+        AHCell = {27,'A*hr'}; % Cell capacity, AH
+        extrapolation_optionCell = {simscape.enum.extrapolation.nearest,'1'}; % Extrapolation method for all tables
+        thermal_massCell = {100,'J/K'}; % Thermal mass
+        CoolantResistance = {1.2,'K/W'}; % Cell level coolant thermal path resistance
+        AmbientResistance = {25,'K/W'}; % Cell level ambient thermal path resistance
+        InterCellThermalResistance = {1,'K/W'}; % Inter-cell thermal path resistance
+        InterCellRadiationArea = {1e-3,'m^2'}; % Inter-cell radiation heat transfer area
+        InterCellRadiationCoefficient = {1e-6,'W/(K^4*m^2)'}; % Inter-cell radiation heat transfer coefficient
+        InterParallelAssemblyThermalResistance = {1,'K/W'}; % Inter-parallel assembly thermal path resistance
+        InterParallelAssemblyRadiationArea = {1e-3,'m^2'}; % Inter-parallel assembly area for radiation heat transfer
+        InterParallelAssemblyRadiationCoefficient = {1e-6,'W/(K^4*m^2)'}; % Inter-parallel assembly coefficient for radiation heat transfer
+    end
+
+    parameters(ExternalAccess=none)
+        P = 2; % Batteries in Parallel
+        S = 12; % Batteries in Series
+        NumInterCellThermalConnections = 12; % Number of inter-cell thermal connections
+        NumInterParallelAssemblyThermalConnections = 11; % Number of inter-parallel assembly thermal connections
+        InterParallelAssemblyConnectionsMapping = [1 2 3 4 5 6 7 8 9 10 11;2 3 4 5 6 7 8 9 10 11 12]; % Inter-parallel assembly connections mapping
+        InterParallelAssemblyCellConnectionsMapping = [2 2 2 2 2 2 2 2 2 2 2;1 1 1 1 1 1 1 1 1 1 1]; % Parallel assembly to cell mapping
+        InterCellConnectionsMapping = [1 1 1 1 1 1 1 1 1 1 1 1;2 2 2 2 2 2 2 2 2 2 2 2]; % Cell model to neighbors mapping
+        CellCount = P*S; % Number of cells in battery
+    end
+
+    parameters(Access=private)
+        CoolantResistanceScaled = CoolantResistance .* ones(1,P*S); % Scaled cell level coolant thermal path resistance
+        AmbientResistanceScaled = AmbientResistance .* ones(1,P*S); % Scaled cell level ambient thermal path resistance
+        InterCellThermalResistanceScaled = InterCellThermalResistance .* ones(1,NumInterCellThermalConnections); % Scaled inter-cell thermal path resistance
+        InterCellRadiationAreaScaled = InterCellRadiationArea .* ones(1,NumInterCellThermalConnections); % Scaled inter-cell radiation heat transfer area
+        InterCellRadiationCoefficientScaled = InterCellRadiationCoefficient .* ones(1,NumInterCellThermalConnections); % Scaled inter-cell radiation heat transfer coefficient
+        InterParallelAssemblyThermalResistanceScaled = InterParallelAssemblyThermalResistance .* ones(1,NumInterParallelAssemblyThermalConnections); % Scaled inter-parallel assembly thermal path resistance
+        InterParallelAssemblyRadiationAreaScaled = InterParallelAssemblyRadiationArea .* ones(1,NumInterParallelAssemblyThermalConnections); % Scaled inter-parallel assembly area for radiation heat transfer
+        InterParallelAssemblyRadiationCoefficientScaled = InterParallelAssemblyRadiationCoefficient .* ones(1,NumInterParallelAssemblyThermalConnections); % Scaled inter-parallel assembly coefficient for radiation heat transfer
+    end
+
+    nodes
+        p = foundation.electrical.electrical; % +
+        n = foundation.electrical.electrical; % -
+        ClntH = foundation.thermal.thermal; % ClntH
+        AmbH = foundation.thermal.thermal; % AmbH
+    end
+
+    variables
+        iCell = {repmat(0,24,1),'A'}; % Cell current (positive in)
+        vCell = {repmat(0,24,1),'V'}; % Cell terminal voltage
+        socCell = {value={repmat(1,24,1),'1'},priority=priority.high}; % Cell state of charge
+        numCyclesCell = {value={repmat(0,24,1),'1'},priority=priority.high}; % Cell discharge cycles
+        temperatureCell = {value={repmat(298.15,24,1),'K'},priority=priority.high}; % Cell temperature
+        vParallelAssembly = {value={repmat(0,12,1),'V'},priority=priority.none}; % Parallel Assembly Voltage
+        socParallelAssembly = {value={repmat(1,12,1),'1'},priority=priority.none}; % Parallel Assembly state of charge
+    end
+
+    equations
+        assert(length(iCell) == CellCount);
+        assert(length(vCell) == CellCount);
+        assert(length(socCell) == CellCount);
+        assert(length(numCyclesCell) == CellCount);
+        assert(length(temperatureCell) == CellCount);
+        assert(length(vParallelAssembly) == S);
+        assert(length(socParallelAssembly) == S);
+        assert(isequal(size(CoolantResistance),[1,1]) || isequal(size(CoolantResistance),[1,P*S]),...
+            'Cell level coolant thermal path resistance must be either a scalar or a row vector. The size of this vector must be equal to the number of cells modeled by the block');
+        assert(isequal(size(AmbientResistance),[1,1]) || isequal(size(AmbientResistance),[1,P*S]),...
+            'Cell level ambient thermal path resistance must be either a scalar or a row vector. The size of this vector must be equal to the number of cells modeled by the block');
+        assert(isequal(size(InterCellThermalResistance),[1,1]) || isequal(size(InterCellThermalResistance),[1,NumInterCellThermalConnections]),...
+            'Inter-cell thermal path resistance must be either a scalar or a row vector. The size of this vector must be equal to the number of inter-cell thermal connections modeled by the block');
+        assert(isequal(size(InterCellRadiationArea),[1,1]) || isequal(size(InterCellRadiationArea),[1,NumInterCellThermalConnections]),...
+            'Inter-cell radiation heat transfer area must be either a scalar or a row vector. The size of this vector must be equal to the number of inter-cell thermal connections modeled by the block');
+        assert(isequal(size(InterCellRadiationCoefficient),[1,1]) || isequal(size(InterCellRadiationCoefficient),[1,NumInterCellThermalConnections]),...
+            'Inter-cell radiation heat transfer coefficient must be either a scalar or a row vector. The size of this vector must be equal to the number of inter-cell thermal connections modeled by the block');
+        assert(isequal(size(InterParallelAssemblyThermalResistance),[1,1]) || isequal(size(InterParallelAssemblyThermalResistance),[1,NumInterParallelAssemblyThermalConnections]),...
+            'Inter-parallel assembly thermal path resistance must be either a scalar or a row vector. The size of this vector must be equal to the number of inter-parallel assembly thermal connections modeled by the block');
+        assert(isequal(size(InterParallelAssemblyRadiationArea),[1,1]) || isequal(size(InterParallelAssemblyRadiationArea),[1,NumInterParallelAssemblyThermalConnections]),...
+            'Inter-parallel assembly area for radiation heat transfer must be either a scalar or a row vector. The size of this vector must be equal to the number of inter-parallel assembly thermal connections modeled by the block');
+        assert(isequal(size(InterParallelAssemblyRadiationCoefficient),[1,1]) || isequal(size(InterParallelAssemblyRadiationCoefficient),[1,NumInterParallelAssemblyThermalConnections]),...
+            'Inter-parallel assembly coefficient for radiation heat transfer must be either a scalar or a row vector. The size of this vector must be equal to the number of inter-parallel assembly thermal connections modeled by the block');
+    end
+
+    connections
+        connect(p,ParallelAssembly1(1).p);
+        connect(n,ParallelAssembly1(end).n);
+    end
+
+    annotations
+        [p] : Side=top;
+        [n] : Side=bottom;
+        UILayout = [UIGroup("Main",SOC_vecCell,V0_vecCell,V_rangeCell,R0_vecCell,AHCell,extrapolation_optionCell),...
+            UIGroup("Thermal",thermal_massCell,CoolantResistance,AmbientResistance,InterCellThermalResistance,InterCellRadiationArea,InterCellRadiationCoefficient,InterParallelAssemblyThermalResistance,InterParallelAssemblyRadiationArea,InterParallelAssemblyRadiationCoefficient)];
+        Icon = 'module.svg';
+    end
+
+    for Sidx = 1:S
+        components(ExternalAccess=observe,CompileReuse=true)
+            ParallelAssembly1(Sidx) = Batteries.ParallelAssemblies.ParallelAssemblyType1(...
+                P = P,SOC_vecCell = SOC_vecCell,V0_vecCell = V0_vecCell,...
+                V_rangeCell = V_rangeCell,R0_vecCell = R0_vecCell,AHCell = AHCell,...
+                extrapolation_optionCell = extrapolation_optionCell,thermal_massCell = thermal_massCell,...
+                CoolantResistance = CoolantResistanceScaled(((Sidx-1)*P+1):(Sidx*P)),...
+                AmbientResistance = AmbientResistanceScaled(((Sidx-1)*P+1):(Sidx*P)),...
+                InterCellThermalResistance = InterCellThermalResistanceScaled(((Sidx-1)*(NumInterCellThermalConnections/S)+1):(Sidx*(NumInterCellThermalConnections/S))),...
+                InterCellRadiationArea = InterCellRadiationAreaScaled(((Sidx-1)*(NumInterCellThermalConnections/S)+1):(Sidx*(NumInterCellThermalConnections/S))),...
+                InterCellRadiationCoefficient = InterCellRadiationCoefficientScaled(((Sidx-1)*(NumInterCellThermalConnections/S)+1):(Sidx*(NumInterCellThermalConnections/S))),iCell.priority = priority.none,...
+                vCell.priority = priority.none,socCell.priority = priority.none,...
+                numCyclesCell.priority = priority.none,temperatureCell.priority = priority.none,...
+                vParallelAssembly.priority = priority.none,...
+                socParallelAssembly.priority = priority.none);
+        end
+    end
+
+    for Sidx = 1:S-1
+        connections
+            connect(ParallelAssembly1(Sidx).n,ParallelAssembly1(Sidx+1).p);
+        end
+    end
+
+    for Sidx = 1:S
+        equations
+            ParallelAssembly1(Sidx).iCell == reshape(iCell((Sidx*P-(P-1)):(Sidx*P)),P,1);
+            ParallelAssembly1(Sidx).vCell == reshape(vCell((Sidx*P-(P-1)):(Sidx*P)),P,1);
+            ParallelAssembly1(Sidx).socCell == reshape(socCell((Sidx*P-(P-1)):(Sidx*P)),P,1);
+            ParallelAssembly1(Sidx).numCyclesCell == reshape(numCyclesCell((Sidx*P-(P-1)):(Sidx*P)),P,1);
+            ParallelAssembly1(Sidx).temperatureCell == reshape(temperatureCell((Sidx*P-(P-1)):(Sidx*P)),P,1);
+            ParallelAssembly1(Sidx).vParallelAssembly == vParallelAssembly(Sidx);
+            ParallelAssembly1(Sidx).socParallelAssembly == socParallelAssembly(Sidx);
+        end
+    end
+
+    for Sidx = 1:S
+        connections
+            connect(ParallelAssembly1(Sidx).ClntH,ClntH);
+        end
+    end
+
+    for Sidx = 1:S
+        connections
+            connect(ParallelAssembly1(Sidx).AmbH,AmbH);
+        end
+    end
+
+    for InterParallelAssemblyThermalResistorIdx = 1:NumInterParallelAssemblyThermalConnections
+        connections
+            connect(ParallelAssembly1(InterParallelAssemblyConnectionsMapping(1,InterParallelAssemblyThermalResistorIdx)).InterCellH(InterParallelAssemblyCellConnectionsMapping(1,InterParallelAssemblyThermalResistorIdx)),InterParallelAssemblyThermalResistor(InterParallelAssemblyThermalResistorIdx).A);
+            connect(InterParallelAssemblyThermalResistor(InterParallelAssemblyThermalResistorIdx).B,ParallelAssembly1(InterParallelAssemblyConnectionsMapping(2, InterParallelAssemblyThermalResistorIdx)).InterCellH(InterParallelAssemblyCellConnectionsMapping(2,InterParallelAssemblyThermalResistorIdx)));
+        end
+    end
+
+    for InterParallelAssemblyThermalResistorIdx = 1:NumInterParallelAssemblyThermalConnections
+        components(ExternalAccess=observe)
+            InterParallelAssemblyThermalResistor(InterParallelAssemblyThermalResistorIdx) = foundation.thermal.elements.resistance(...
+                resistance = InterParallelAssemblyThermalResistanceScaled(InterParallelAssemblyThermalResistorIdx));
+        end
+    end
+
+    for InterParallelAssemblyRadiativeHeatTransferIdx = 1:NumInterParallelAssemblyThermalConnections
+        connections
+            connect(ParallelAssembly1(InterParallelAssemblyConnectionsMapping(1,InterParallelAssemblyRadiativeHeatTransferIdx)).InterCellRadiativeH(InterParallelAssemblyCellConnectionsMapping(1,InterParallelAssemblyRadiativeHeatTransferIdx)),InterParallelAssemblyRadiativeHeatTransfer(InterParallelAssemblyRadiativeHeatTransferIdx).A);
+            connect(InterParallelAssemblyRadiativeHeatTransfer(InterParallelAssemblyRadiativeHeatTransferIdx).B,ParallelAssembly1(InterParallelAssemblyConnectionsMapping(2, InterParallelAssemblyRadiativeHeatTransferIdx)).InterCellRadiativeH(InterParallelAssemblyCellConnectionsMapping(2,InterParallelAssemblyRadiativeHeatTransferIdx)));
+        end
+    end
+
+    for InterParallelAssemblyRadiativeHeatTransferIdx = 1:NumInterParallelAssemblyThermalConnections
+        components(ExternalAccess=observe)
+            InterParallelAssemblyRadiativeHeatTransfer(InterParallelAssemblyRadiativeHeatTransferIdx) = foundation.thermal.elements.radiation(...
+                area = InterParallelAssemblyRadiationAreaScaled(InterParallelAssemblyRadiativeHeatTransferIdx),...
+                rad_tr_coeff = InterParallelAssemblyRadiationCoefficientScaled(InterParallelAssemblyRadiativeHeatTransferIdx));
+        end
+    end
+end

@@ -1,4 +1,4 @@
-%% First-time script for building a 12s2p pouch geometry battery module. Not taken into account the specific cell specs
+%% First-time script for building a 12s2p pouch geometry battery module. Not taken into account the specific cell specs or thermals
 
 import simscape.battery.builder.*
 
