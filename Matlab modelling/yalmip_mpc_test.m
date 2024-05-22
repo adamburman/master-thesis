@@ -15,13 +15,13 @@ nx = 4; % Number of states
 nu = 1; % Number of inputs
 
 % MPC data
-Q = diag([100 0 0 0]);
+Q = diag([1 0 0 0]);
 R = 20;
 N = 30;
 
 
 ny = 1;
-C = [1 0];
+C = [1 0 0 0;0 0 1 0];
 
 u = sdpvar(repmat(nu,1,N),repmat(1,1,N));
 x = sdpvar(repmat(nx,1,N+1),repmat(1,1,N+1));

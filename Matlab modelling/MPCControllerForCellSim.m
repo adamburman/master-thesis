@@ -1,4 +1,4 @@
-function uout = MPCControllerForCellSim(currentx,currentr,t)
+function uout = MPCControllerForCellSim(currentx,t)
 
 persistent Controller
 
@@ -25,7 +25,6 @@ if t == 0
     % Define data for MPC controller
     N = 30;
     Q = diag([1 0 0 0]);
-    R = 0.1;
     
     % Avoid explosion of internally defined variables in YALMIP
     yalmip('clear')
@@ -33,9 +32,11 @@ if t == 0
     % Setup the optimization problem
     u = sdpvar(repmat(nu,1,N),repmat(1,1,N));
     x = sdpvar(repmat(nx,1,N+1),repmat(1,1,N+1));
-    sdpvar r
+    % pastu = sdpvar(1);
+    % sdpvar r
     % Define simple standard MPC controller
     % Current state is known so we replace this
+    % constraints = [-10 <= diff([pastu u{:}]) <= 10];
     constraints = [];
     objective = 0;
     for k = 1:N
@@ -50,18 +51,20 @@ if t == 0
     % initial state and reference
     % Force optimizer to turn on dispay until you know things work
     % To see log you have to use debug breaks in code and run manually
-    ops = sdpsettings('verbose',2)
-    Controller = optimizer(constraints,objective,ops,{x{1},r},u{1});
+    ops = sdpsettings('verbose',2,'solver','mosek')
+    Controller = optimizer(constraints,objective,ops,x{1},u{1});
     
     % And use it here 
-    [uout,problem] = Controller(currentx,currentr);
+    [uout,problem] = Controller(currentx);
+    % uout = uout{1};
     if problem
        % Fix!
     end
     
 else    
     % Almost no overhead
-    [uout,problem] = Controller(currentx,currentr);
+    [uout,problem] = Controller(currentx);
+    % uout = uout{1};
     if problem
       % Debug, analyze, fix!
     end 
