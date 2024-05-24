@@ -28,19 +28,19 @@ u = I;
 
     % x = soc, V1, Ts, Tc
 f = [-1/(3600*Cn)*I;...
-    -R1/C1*V1;...
+    -R1/C1*V1 + I/C1;...
     (Tf-Ts)/(Ru*Cs) - (Ts - Tc)/(Rc*Cs);...
     (Ts-Tc)/(Rc*Cc) + I*(V1 + R0*I)/Cc]; % State 2 (V1) didn't have + I/C1
 
-h = [SoC; V1; Tc;]; %Had I as well but mpc doesn't allow feedforward
+h = [Ts]; %Had I as well but mpc doesn't allow feedforward
 
 
-Al = double(subs(jacobian(f, x'), I, IBar));
+Al = double(subs(jacobian(f, x'), [I V1], [IBar V1Bar]));
 Bl = double(subs(jacobian(f, u),[I V1], [IBar V1Bar]));
 Cl = double(jacobian(h, x'));
 Dl = double(jacobian(h, u));
 
 lSys = ss(Al,Bl,Cl,Dl);
-ldSys = c2d(lSys, 1);
+ldSys = c2d(lSys, 0.01);
 x0 = [1 0 Tf Tf]';
 

@@ -2,34 +2,41 @@ yalmip('clear')
 
 % Model data
 A = [1, 0, 0, 0; 
-     0, 1, 0, 0; 
-     0, 0.1235, 0.7727, 0.1901; 
-     0, 1.217, 0.03097, 0.9683];
-B = [-3.561e-06; 0; 0.0007592; 0.007484];
+     0, 0.999976355162077, 0, 0; 
+     0, 0.123485441953946, 0.772709770193292, 0.190091811880446; 
+     0, 1.21727203076061, 0.0309729232429332, 0.968340552949701];
+% B = [-3.561e-06; 0; 0.0007592; 0.007484]; % Previous B, without I/C1 term
+% B = [-3.56125356125356e-06; 0; 0.000759225545468568;
+% 0.00748418218371487];
+B = [-3.56125356125356e-06; ...
+    0.0804912667429565; ...
+    0.00415319237390651; ...
+    0.0567373574035019]; % Correct B, with I/C1 term
 nx = 4; % Number of states
 nu = 1; % Number of inputs
 
 % MPC data
-Q = diag([1 0 0 0]);
-R = 10;
-N = 20;
+Q = diag([1 0 1 0]);
+R = 0;
+N = 30;
 
 
 ny = 1;
-C = [1 0];
+C = [1 0 0 0;0 0 1 0];
 
 u = sdpvar(repmat(nu,1,N),repmat(1,1,N));
 x = sdpvar(repmat(nx,1,N+1),repmat(1,1,N+1));
-r = sdpvar(repmat(ny,1,N+1),repmat(1,1,N+1));
+%r = sdpvar(repmat(ny,1,N+1),repmat(1,1,N+1));
+r = [0;40];
 d = sdpvar(1);
 pastu = sdpvar(1);
 
 constraints = [-10 <= diff([pastu u{:}]) <= 10];
 objective = 0;
 for k = 1:N
-    objective = objective + x{k}'*Q*x{k} ;
+    objective = objective + (r - C*x{k})'*Q*(r - C*x{k}) + u{k}'*R*u{k};
     constraints = [constraints, x{k+1} == A*x{k} + B*u{k}];
-    constraints = [constraints, 0 <= u{k} <= 100];
+    constraints = [constraints, 0 <= u{k} <= 40];
     constraints = [constraints, 0 <= x{k+1}(3) <= 40]; % Constraint on the third state (T_s)
     constraints = [constraints, 0 <= x{k+1}(4) <= 40]; % Constraint on the fourth state (T_c)
 
