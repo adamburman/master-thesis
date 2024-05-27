@@ -1,4 +1,4 @@
-function uout = MPCControllerForCellSim(currentx,t)
+function uout = MPCControllerForCellSim(currentr, currentx,t)
 
 persistent Controller
 
@@ -30,12 +30,25 @@ if t == 0
         0.000758974104725855;...
         0.00748289716506867];
 
+    % Lower sample rate
+    % Ad = [1 0 0 0;...
+    %     0 0 0 0;...
+    %     0 0.003094 0.1491 0.6851;...
+    %     0 0.003858 0.1116 0.8541];
+    % Bd = [-3.561e-05;...
+    %     0.0002938;...
+    %     0.03789;...
+    %     0.06888];
+
+
+    Cd = [1 0 0 0;0 0 1 0];
     Ts = 1;
     [nx, nu] = size(Bd);
     
     % Define data for MPC controller
-    N = 30;
-    Q = diag([1 0 0 0]);
+    N = 40;
+    Q = diag([1 1]);
+    R = 1;
     
     % Avoid explosion of internally defined variables in YALMIP
     yalmip('clear')
@@ -44,18 +57,20 @@ if t == 0
     u = sdpvar(repmat(nu,1,N),repmat(1,1,N));
     x = sdpvar(repmat(nx,1,N+1),repmat(1,1,N+1));
     % pastu = sdpvar(1);
-    % sdpvar r
+    r = sdpvar(2,1);
+    % sdpvar r;
     % Define simple standard MPC controller
     % Current state is known so we replace this
     % constraints = [-10 <= diff([pastu u{:}]) <= 10];
     constraints = [];
     objective = 0;
     for k = 1:N
-        objective = objective + x{k}'*Q*x{k};
+        objective = objective + (r - Cd*x{k})'*Q*(r - Cd*x{k});
         constraints = [constraints, x{k+1} == Ad*x{k}+Bd*u{k}];
+        constraints = [constraints, -5 <= diff([u{:}]) <= 5];
     constraints = [constraints, 0 <= u{k} <= 40];
-    constraints = [constraints, 0 <= x{k+1}(3) <= 40]; % Constraint on the third state (T_s)
-    constraints = [constraints, 0 <= x{k+1}(4) <= 40]; % Constraint on the fourth state (T_c)
+    constraints = [constraints, 0 <= x{k+1}(3) <= 50]; % Constraint on the third state (T_s)
+    % constraints = [constraints, 0 <= x{k+1}(4) <= 50]; % Constraint on the fourth state (T_c)
     end
     
     % Define an optimizer object which solves the problem for a particular
@@ -63,10 +78,10 @@ if t == 0
     % Force optimizer to turn on dispay until you know things work
     % To see log you have to use debug breaks in code and run manually
     ops = sdpsettings('verbose',2,'solver','mosek')
-    Controller = optimizer(constraints,objective,ops,x{1},u{1});
+    Controller = optimizer(constraints,objective,ops,{r, x{1}},u{1});
     
     % And use it here 
-    [uout,problem] = Controller(currentx);
+    [uout,problem] = Controller({currentr, currentx});
     % uout = uout{1};
     if problem
        % Fix!
@@ -74,7 +89,7 @@ if t == 0
     
 else    
     % Almost no overhead
-    [uout,problem] = Controller(currentx);
+    [uout,problem] = Controller({currentr, currentx});
     % uout = uout{1};
     if problem
       % Debug, analyze, fix!
