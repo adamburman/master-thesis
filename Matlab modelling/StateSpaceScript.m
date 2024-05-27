@@ -40,7 +40,12 @@ Bl = double(subs(jacobian(f, u),[I V1], [IBar V1Bar]));
 Cl = double(jacobian(h, x'));
 Dl = double(jacobian(h, u));
 
+% Al = double(subs(jacobian(f, x'), [I V1], [0 0]));
+% Bl = double(subs(jacobian(f, u),[I V1], [0 0]));
+% Cl = double(jacobian(h, x'));
+% Dl = double(jacobian(h, u));
+
 lSys = ss(Al,Bl,Cl,Dl);
-ldSys = c2d(lSys, 0.01);
+ldSys = c2d(lSys, 1);
 x0 = [1 0 Tf Tf]';
 

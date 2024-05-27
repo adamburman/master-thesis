@@ -15,11 +15,18 @@ B = [-3.561e-06; 0; 0.0007592; 0.007484]; % Previous B, without I/C1 term
 nx = 4; % Number of states
 nu = 1; % Number of inputs
 
+% Below are the state-space matrices from the linearization toolbox in
+% simulink from the diff. eq.
+A = linSys.A;
+B = linSys.B;
+[nx, nu] = size(B);
+
+
 % MPC data
-% Q = diag([1 0 1 0]);
+% Q = diag([1 0 0 0]);
 Q = diag([1 1]);
 R = 0;
-N = 200;
+N = 30;
 
 
 C = [1 0 0 0;0 0 1 0];
