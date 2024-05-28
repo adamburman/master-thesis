@@ -47,7 +47,7 @@ if t == 0
     
     % Define data for MPC controller
     N = 40;
-    Q = diag([100 100]);
+    Q = diag([1 1]);
     R = 1;
     
     % Avoid explosion of internally defined variables in YALMIP
@@ -65,12 +65,10 @@ if t == 0
     constraints = [];
     objective = 0;
     for k = 1:N
-        objective = objective + (r - Cd*x{k})'*Q*(r - Cd*x{k}) + u{k}'*R*u{k};
+        objective = objective + (r - Cd*x{k})'*Q*(r - Cd*x{k});
         constraints = [constraints, x{k+1} == Ad*x{k}+Bd*u{k}];
-        if k < N
-            constraints = [constraints, -1 <= (u{k+1}-u{k}) <= 1];
-        end
-        % constraints = [constraints, -5 <= diff([u{:}]) <= 5];
+        constraints = [constraints, -5 <= diff([u{:}]) <= 5];
+        constraints = [constraints, -1 <= (u{k+1} ]
     constraints = [constraints, 0 <= u{k} <= 40];
     constraints = [constraints, 0 <= x{k+1}(3) <= 50]; % Constraint on the third state (T_s)
     % constraints = [constraints, 0 <= x{k+1}(4) <= 50]; % Constraint on the fourth state (T_c)
