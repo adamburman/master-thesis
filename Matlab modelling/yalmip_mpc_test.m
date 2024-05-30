@@ -24,9 +24,9 @@ B = linSys.B;
 
 % MPC data
 % Q = diag([1 0 0 0]);
-Q = diag([1 1]);
-R = 0;
-N = 30;
+Q = diag([100 100]);
+R = 1;
+N = 10;
 
 
 C = [1 0 0 0;0 0 1 0];
@@ -40,14 +40,17 @@ r = sdpvar(repmat(ny,1,N+1),repmat(1,1,N+1));
 % d = sdpvar(1);
 pastu = sdpvar(1);
 
-constraints = [-10 <= diff([pastu u{:}]) <= 10];
+constraints = []; %[-10 <= diff([pastu u{:}]) <= 10];
 objective = 0;
 for k = 1:N
     objective = objective + (r{k} - C*x{k})'*Q*(r{k} - C*x{k}) + u{k}'*R*u{k};
     constraints = [constraints, x{k+1} == A*x{k} + B*u{k}];
     constraints = [constraints, 0 <= u{k} <= 40];
-    constraints = [constraints, 0 <= x{k+1}(3) <= 40]; % Constraint on the third state (T_s)
-    constraints = [constraints, 0 <= x{k+1}(4) <= 40]; % Constraint on the fourth state (T_c)
+    if k < N
+        constraints = [constraints, -1 <= (u{k+1}-u{k}) <= 1];
+    end
+    constraints = [constraints, 0 <= x{k+1}(3) <= 50]; % Constraint on the third state (T_s)
+    %constraints = [constraints, 0 <= x{k+1}(4) <= 40]; % Constraint on the fourth state (T_c)
 
 end
 % objective = objective + x{k}'*Q*x{k};
@@ -64,7 +67,7 @@ hold on
 xhist = x;
 past_inputs = [];
 i = 1;
-while xhist(1,i) > 0.90
+while xhist(1,i) > 0.95
     % future_r = sin((i:i+N)/40);    
     future_r = repmat([0;40], 1, length(i:i+N));
     inputs = {x,future_r,oldu};

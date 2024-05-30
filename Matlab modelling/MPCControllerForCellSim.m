@@ -67,6 +67,11 @@ if t == 0
     for k = 1:N
         objective = objective + (r - Cd*x{k})'*Q*(r - Cd*x{k}) + u{k}'*R*u{k};
         constraints = [constraints, x{k+1} == Ad*x{k}+Bd*u{k}];
+        % if k <N/2
+        %     
+        % else
+        %     constraints = [constraints, x{k+1} == Ad*x{k}];
+        % end
         if k < N
             constraints = [constraints, -1 <= (u{k+1}-u{k}) <= 1];
         end
