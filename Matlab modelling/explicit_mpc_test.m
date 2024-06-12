@@ -14,7 +14,7 @@ Ts = 1;
 [nx, nu] = size(Bd);
 
 % Prediction horizon
-N = 40;
+N = 4;
 Q = diag([100 100]);
 R = 1;
 

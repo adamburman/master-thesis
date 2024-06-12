@@ -40,8 +40,8 @@ if t == 0
     %     0.03789;...
     %     0.06888];
 
-
-    Cd = [1 0 0 0;0 0 1 0];
+    % Cd = [1 0 0 0;0 0 1 0];
+    Cd = [1 0 0 0;0 0 0.5 0.5];
     Ts = 1;
     [nx, nu] = size(Bd);
     
@@ -77,7 +77,7 @@ if t == 0
         end
         % constraints = [constraints, -5 <= diff([u{:}]) <= 5];
     constraints = [constraints, 0 <= u{k} <= 40];
-    constraints = [constraints, 0 <= x{k+1}(3) <= 50]; % Constraint on the third state (T_s)
+    constraints = [constraints, 0 <= x{k+1}(4) <= 50]; % Constraint on the third state (T_s)
     % constraints = [constraints, 0 <= x{k+1}(4) <= 50]; % Constraint on the fourth state (T_c)
     end
     
