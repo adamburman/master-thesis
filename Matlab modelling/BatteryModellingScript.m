@@ -6,6 +6,7 @@ pouchGeometry = PouchGeometry(Length=simscape.Value(0.25,"m")); % TODO: Find dat
 batteryCell = Cell(Geometry=PouchGeometry)
 
 batteryCell.CellModelOptions.BlockParameters.thermal_port = "model";
+batteryCell.CellModelOptions.BlockParameters.T_dependence = "yes";
 
 batteryparallelassembly = ParallelAssembly(Cell=batteryCell,...
     NumParallelCells=2, ...
