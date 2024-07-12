@@ -4,7 +4,7 @@ pulseDischargeTime = [0, 3600, 4536, 7200, 8136, 10800, 11736, 14400, ...
                       28800, 29736, 32400, 33336, 36000, 36936, 40536];
                   
 pulseDischargeCurrent = [0, 30, 0, 30, 0, 30, 0, 30, 0, 30, 0, 30, 0, 30, ...
-                         0, 30, 0, 30, 0, 0, 0];
+                         0, 30, 0, 30, 0, 0, 0]/30*8.3278;
 
 % Create time and current vectors for stair plot
 stair_time = [];
