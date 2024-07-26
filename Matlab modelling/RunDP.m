@@ -1,4 +1,5 @@
-N = 500;
+N = 25;
+holdTime = 400;
 initialGuess = zeros(1, N);
 if isempty(initialCurrentGuessDP)   
     load("initialCurrentGuessDP.mat");
@@ -8,8 +9,8 @@ if length(initialCurrentGuessDP) > N
 else
     initialGuess(1:length(initialCurrentGuessDP)) = initialCurrentGuessDP;
 end
-initialGuess = 30.3413*ones(1,N);
-initialGuess(1:7) = 40;
+initialGuess = 32.3413*ones(1,N);
+% initialGuess(1:7) = 40;
 % initialGuess = zeros(1,500);
 A = [];
 b = [];
@@ -49,18 +50,12 @@ customInitialPopulation = min(max(customInitialPopulation, 0), 40);
 % x0Vec(:,1) = [1 0 20 20 1]';
 x0 = [1 0 20 20 1]';
 % x0 = [0.939924640506796 0.0089513790517327 33.5428728458853 39.9882734799299 0.939329768253312]; % after first 500 steps
-DPSolution = [];%zeros(1,N*1);
-lastI = [];
-for i = 1:1
+% DPSolution = [];%zeros(1,N*1);
+% lastI = [];
     options = optimoptions('fmincon','Display','iter', 'MaxFunctionEvaluations', 100*N, 'MaxIterations', 1e4,'UseParallel',true);
-    optVars = fmincon(@(I) DPCostFunction(I,x0, lastI), initialGuess, A, b, Aeq, beq, lb, ub, @(I) DPConstraints(I, x0, lastI), options);
-    DPSolution = [DPSolution optVars];%(N*(i-1)+1:N*i) = optVars;
-    for k = 1:N
-        x0 = DPBatteryDynamics(x0, optVars(k), 1);
-    end
-    lastI = optVars(end-49:end);
+    optVars = fmincon(@(I) DPCostFunction(I, holdTime), initialGuess, A, b, Aeq, beq, lb, ub, @(I) DPConstraints(I,holdTime), options);
+    DPSolution = repelem(optVars,holdTime);%(N*(i-1)+1:N*i) = optVars;
     % initialGuess=optVars;
-end
 
 % Set up GA options
 % options = optimoptions('ga', ...
@@ -94,6 +89,25 @@ end
 
 %%
 figure(1);clf;hold on
-plot(repmat(initialGuess,1,3),'--k','linewidth',1)
+plot(repelem(initialGuess,holdTime),'--k','linewidth',1)
 plot(DPSolution, 'r','LineWidth',1)
 legend('Initial guess', 'Solver output')
+
+% For the state space and SoE development
+x0 = [1 0 20 20 1]';
+x = x0;
+temp =  repelem(optVars,holdTime);
+for k = 2:N*holdTime
+    x(:,k) = DPBatteryDynamics(x(:,k-1), DPSolution(k), 1);
+    % temp(k) = (x(1,k).^(4:-1:0))*soc_ocv_coefficients - initialCurrentGuessDP(k)*R0 - x(2,k);
+end
+
+figure(2);clf;titleStrings = {'SoC', 'V1', 'Ts', 'Tc', 'SoE'};
+for i = 1:5
+    subplot(6,1,i)
+    plot(x(i,:))
+    title(titleStrings{i})
+end
+subplot(6,1,6)
+plot(DPSolution)
+title('DP Solution')
