@@ -44,21 +44,6 @@ function xNext = DPBatteryDynamics(x, u, deltaT)
     %     (x(5)-x(4))/(Ru*Cs) - (x(4) - x(5))/(Rc*Cs);... % Ts
     %     (x(4)-x(5))/(Rc*Cc) + u*(x(3) + R0*u)/Cc   % Tc                   % Placeholder for dTc/dt
     % ];
-    % 
-    % % Compute k1
-    % k1 = f(x, u);
-    % 
-    % % Compute k2
-    % k2 = f(x + 0.5 * deltaT * k1, u);
-    % 
-    % % Compute k3
-    % k3 = f(x + 0.5 * deltaT * k2, u);
-    % 
-    % % Compute k4
-    % k4 = f(x + deltaT * k3, u);
-    % 
-    % % Update state
-    % xNext = x + (deltaT / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
 end
 
 % % For the state space and SoE development
