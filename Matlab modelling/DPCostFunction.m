@@ -1,25 +1,59 @@
-function J = DPCostFunction(I, holdTime)
-    x(:,1) = [1 0 20 20 1]';%x0;
+function J = DPCostFunction(I, holdTime, orderHold)
+if orderHold == 0
+    % Initial state of the system
+    x(:, 1) = [1 0 20 20 1]'; % [SoC, V1, Ts, Tc, SoE]
     N = length(I);
-    % holdTime = 500; % Each current value is held for 22 seconds
-    deltaT = 1; % Time step
-    I = repelem(I,holdTime);
+    deltaT = 1;
+    I = repelem(I, holdTime);
+
     % Apply dynamics over extended time due to zero-order hold
-    for k = 2:N*holdTime
-        % for t = 1:holdTime
-            x(:, k) = DPBatteryDynamics(x(:, k-1), I(k-1), deltaT);
-        % end
+    for k = 2:N * holdTime
+        x(:, k) = DPBatteryDynamics(x(:, k - 1), I(k - 1), deltaT);
     end
 
-    % Minimize steps to reach SoE <= 0.95 (or adjust threshold as needed)
-    J = find(x(5,:) <= 0.0, 1, 'first');
-    % J = x(5,end);%trapz(x(5,:));
-    % J = 2*J;
-    if isempty(J)
-        % J = N*holdTime*(1+x(5,end));  % No solution found, penalize with maximum steps
-        J = N*holdTime + holdTime*x(5,end);
+    % Find the first index where SoE is zero or below
+    finalStep = find(x(5, :) <= 0.0, 1, 'first');
+
+    % Cost is based on the time it takes to reach zero SoE
+    if isempty(finalStep)
+        % If SoE never reaches zero, penalize heavily
+        J = N * holdTime + abs(x(5, end)) * 1000;
+    else
+        % Cost is primarily determined by the time to reach zero SoE
+        J = finalStep;
     end
-    % if ~isempty(lastI)
-    %     J = J + norm(abs(I(1:length(lastI)) - lastI)).^2;
-    % end
+    figure(3);clf;plot(I);
+elseif orderHold == 1
+    % Initial state of the system
+    x(:, 1) = [1 0 20 20 1]'; % [SoC, V1, Ts, Tc, SoE]
+    N = length(I);
+    deltaT = 1;
+
+    % Calculate the total simulation steps
+    totalSteps = N * holdTime;
+
+    % Time steps for interpolation
+    timeSteps = linspace(1, totalSteps, N);
+
+    % Expanded current array with linear interpolation between control inputs
+    I = interp1(timeSteps, I, 1:totalSteps);
+
+    % Apply dynamics over expanded time with linear interpolation
+    for k = 2:totalSteps
+        x(:, k) = DPBatteryDynamics(x(:, k - 1), I(k - 1), deltaT);
+    end
+
+    % Find the first index where SoE is zero or below
+    finalStep = find(x(5, :) <= 0.0, 1, 'first');
+
+    % Cost is based on the time it takes to reach zero SoE
+    if isempty(finalStep)
+        % If SoE never reaches zero, penalize heavily
+        J = totalSteps + abs(x(5, end)) * 1000;
+    else
+        % Cost is primarily determined by the time to reach zero SoE
+        J = finalStep;
+    end
+    figure(3);clf;plot(I);
+end
 end
