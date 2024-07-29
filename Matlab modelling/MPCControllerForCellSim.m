@@ -40,22 +40,24 @@ if t == 0
     %     0.03789;...
     %     0.06888];
 
-    % Cd = [1 0 0 0;0 0 1 0];
-    Cd = [1 0 0 0;0 0 0.5 0.5];
+
+    Cd = [1 0 0 0 0;0 0 1 0 0];
+    terminalPenaltyMatrix = [0 0 0 0 1];
     Ts = 1;
     [nx, nu] = size(Bd);
-    
+
     % Define data for MPC controller
     N = 40;
     Q = diag([100 100]);
     R = 1;
-    
+    W = 1000;
+
     % Avoid explosion of internally defined variables in YALMIP
     yalmip('clear')
-    
+
     % Setup the optimization problem
     u = sdpvar(repmat(nu,1,N),repmat(1,1,N));
-    x = sdpvar(repmat(nx,1,N+1),repmat(1,1,N+1));
+    x = sdpvar(repmat(nx+1,1,N+1),repmat(1,1,N+1));
     % pastu = sdpvar(1);
     r = sdpvar(2,1);
     % sdpvar r;
@@ -65,36 +67,34 @@ if t == 0
     constraints = [];
     objective = 0;
     for k = 1:N
-        objective = objective + (r - Cd*x{k})'*Q*(r - Cd*x{k}) + u{k}'*R*u{k};
-        constraints = [constraints, x{k+1} == Ad*x{k}+Bd*u{k}];
-        % if k <N/2
-        %     
-        % else
-        %     constraints = [constraints, x{k+1} == Ad*x{k}];
-        % end
-        if k < N
-            constraints = [constraints, -1 <= (u{k+1}-u{k}) <= 1];
-        end
+        objective = objective + (r - Cd*x{k})'*Q*(r - Cd*x{k}) + u{k}*R*u{k};
+        constraints = [constraints, x{k+1}(1:4) == Ad*x{k}(1:4)+Bd*u{k}];
         % constraints = [constraints, -5 <= diff([u{:}]) <= 5];
+        % constraints = [constraints, -1 <= (u{k+1} ]
+            if k < N
+            constraints = [constraints, -1 <= (u{k+1}-u{k}) <= 1];
+            else
+                objective = objective + (terminalPenaltyMatrix*x{k})'*W*(terminalPenaltyMatrix*x{k});
+        end
     constraints = [constraints, 0 <= u{k} <= 40];
-    constraints = [constraints, 0 <= x{k+1}(4) <= 50]; % Constraint on the third state (T_s)
+    constraints = [constraints, 0 <= x{k+1}(3) <= 50]; % Constraint on the third state (T_s)
     % constraints = [constraints, 0 <= x{k+1}(4) <= 50]; % Constraint on the fourth state (T_c)
     end
-    
+
     % Define an optimizer object which solves the problem for a particular
     % initial state and reference
     % Force optimizer to turn on dispay until you know things work
     % To see log you have to use debug breaks in code and run manually
     ops = sdpsettings('verbose',2,'solver','mosek')
     Controller = optimizer(constraints,objective,ops,{r, x{1}},u{1});
-    
+
     % And use it here 
     [uout,problem] = Controller({currentr, currentx});
     % uout = uout{1};
     if problem
        % Fix!
     end
-    
+
 else    
     % Almost no overhead
     [uout,problem] = Controller({currentr, currentx});

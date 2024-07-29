@@ -17,12 +17,13 @@ if orderHold == 0
     % Cost is based on the time it takes to reach zero SoE
     if isempty(finalStep)
         % If SoE never reaches zero, penalize heavily
-        J = N * holdTime + abs(x(5, end)) * 1000;
+        J = N * holdTime + abs(x(5, end)) * 1e5;
     else
         % Cost is primarily determined by the time to reach zero SoE
-        J = finalStep;
+        J = 1e1*finalStep;
     end
-    figure(3);clf;plot(I);
+    J = J + trapz(I)/1e5;
+    % figure(3);clf;plot(I);
 elseif orderHold == 1
     % Initial state of the system
     x(:, 1) = [1 0 20 20 1]'; % [SoC, V1, Ts, Tc, SoE]
@@ -54,6 +55,6 @@ elseif orderHold == 1
         % Cost is primarily determined by the time to reach zero SoE
         J = finalStep;
     end
-    figure(3);clf;plot(I);
+    % figure(3);clf;plot(I);
 end
 end

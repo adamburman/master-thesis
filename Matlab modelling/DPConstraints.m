@@ -18,7 +18,7 @@ if orderHold == 0
         % Add temperature constraint (core temperature should be <= TMax)
         c = [c; x(4, k) - TMax];
     end
-
+    c = [c; x(5,end)];
     % No equality constraints are needed
     % ceq = [];
 

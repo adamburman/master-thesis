@@ -17,7 +17,7 @@ function xNext = DPBatteryDynamics(x, u, deltaT)
     R0 = 0.0099131;
     R1 = 3e-4;
     C1 = 12.6138;
-    ENom = 1056908.83315503;
+    ENom =  992623.375585428;
 
     soc_ocv_coefficients = [-2.0713 4.5787 -2.7974 0.9751 3.4939]';
 
@@ -96,3 +96,29 @@ end
 % disp(['Optimized number of steps: ', num2str(N_opt)]);
 % disp('Optimized current profile:');
 % disp(I_opt);
+
+
+% % x = x0;
+% x = [0.978632478632473 0.011750262546556 31.5188321009912 37.8717190874606]';% 0.977261663416445]';
+% N = 80;
+% figure(4); clf; 
+% titleStrings = {'SoC', 'V1', 'Ts', 'Tc', 'SoE'};
+% MPCSolution = [];
+% for k = 1:N
+%     % r = exp(-.1*10^(-3)*(k+150))*100*0;
+%     % r = 20-5*sin(1/(60)*(k-1));
+%     r = [0;40];
+%     MPCSolution(k) = MPCControllerForCellSim(r, x(:,k), k-1);
+%     temp = DPBatteryDynamics([x(:,k);1], MPCSolution(k), 1);
+%     x(:,k+1) = temp(1:4);
+%     pause(0.01)
+% 
+%     for i = 1:4
+%         subplot(6, 1, i);
+%         plot(x(i, :));
+%         title(titleStrings{i});
+%     end
+%     subplot(6, 1, 6);
+%     plot(MPCSolution(:));
+%     title('MPC Solution');
+% end

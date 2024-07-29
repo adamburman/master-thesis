@@ -44,6 +44,7 @@ options = optimoptions('fmincon', 'Display', 'iter', ...
 optVars = fmincon(@(I) DPCostFunction(I, holdTime, orderHold), initialGuess, A, b, Aeq, beq, lb, ub, @(I) DPConstraints(I, holdTime, orderHold), options);
 
 DPSolution = repelem(optVars, holdTime);
+%%
 
 figure(1); clf; hold on;
 plot(repelem(initialGuess, holdTime), '--k', 'linewidth', 1);
