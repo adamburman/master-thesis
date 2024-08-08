@@ -29,6 +29,11 @@ if t == 0
         0.000293756563663899;...
         0.000758974104725855;...
         0.00748289716506867];
+    
+    ENom =  992623.375585428;
+    R0 = 0.0099131;
+    soc_ocv_coefficients = [-2.0713 4.5787 -2.7974 0.9751 3.4939]';
+    deltaT = 1;
 
     % Lower sample rate
     % Ad = [1 0 0 0;...
@@ -68,7 +73,10 @@ if t == 0
     objective = 0;
     for k = 1:N
         objective = objective + (r - Cd*x{k})'*Q*(r - Cd*x{k}) + u{k}*R*u{k};
-        constraints = [constraints, x{k+1}(1:4) == Ad*x{k}(1:4)+Bd*u{k}];
+        vT = (x{k}(1).^(4:-1:0))*soc_ocv_coefficients - u{k}*R0 - x{k}(2);
+        soeEvolution = x{k}(5) - vT*u{k}*deltaT/ENom;
+        constraints = [constraints, x{k+1}(1:4) == Ad*x{k}(1:4)+Bd*u{k}; x{k+1}(5) == soeEvolution];
+        
         % constraints = [constraints, -5 <= diff([u{:}]) <= 5];
         % constraints = [constraints, -1 <= (u{k+1} ]
             if k < N
@@ -77,7 +85,7 @@ if t == 0
                 objective = objective + (terminalPenaltyMatrix*x{k})'*W*(terminalPenaltyMatrix*x{k});
         end
     constraints = [constraints, 0 <= u{k} <= 40];
-    constraints = [constraints, 0 <= x{k+1}(3) <= 50]; % Constraint on the third state (T_s)
+    constraints = [constraints, 0 <= x{k+1}(3) <= 40]; % Constraint on the third state (T_s)
     % constraints = [constraints, 0 <= x{k+1}(4) <= 50]; % Constraint on the fourth state (T_c)
     end
 
