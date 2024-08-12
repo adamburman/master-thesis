@@ -248,3 +248,35 @@ legend('show', 'Location', 'best');
 grid on;
 yline(40, 'r--','linewidth',.5,'DisplayName','Temperature constraint')
 hold off;
+
+
+%%
+% 
+% figure;hold on;clf;
+% 
+% % Plot each strategy's temperature
+% for i = 1:numStrategies
+%     timeData = datasets{i}{2}.Time;
+%     temperatures = datasets{i}{2}.Data(:, 2); % Extracting temperature
+% 
+%     aboveThreshold = temperatures > thresholdTemp;
+% 
+%     % Below threshold
+%     plot(timeData(~aboveThreshold), temperatures(~aboveThreshold), ...
+%          'Color', colorMap(i,:), ...
+%          'LineStyle', lineStyles{mod(i-1, length(lineStyles))+1}, ...
+%          'DisplayName', [labels{i} ' (Below 40°C)'], 'LineWidth', 1.5);
+%     hold on
+%     % Above threshold
+%     plot(timeData(aboveThreshold), temperatures(aboveThreshold), ...
+%          'Color', [1, 0, 0], ...
+%          'LineStyle', lineStyles{mod(i-1, length(lineStyles))+1}, ...
+%          'DisplayName', [labels{i} ' (Above 40°C)'], 'LineWidth', 1.5);
+% end
+% 
+% xlabel('Time (s)');
+% ylabel('Temperature (°C)');
+% title('Temperature vs. Time');
+% legend('show', 'Location', 'best');
+% grid on;
+% hold off;
