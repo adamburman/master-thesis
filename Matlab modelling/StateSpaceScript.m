@@ -15,7 +15,7 @@
 
 
 % Operating point, starting with TcBar = 40 Centigrade
-TcBar = 40;
+TcBar = 35;
 TsBar = (Ru*TcBar + Rc*Tf) / (Ru+Rc);
 IBar = sqrt(Cc*(TcBar - TsBar) / (Rc*Cc*(R1+R0)));
 V1Bar = R1*IBar;
@@ -45,7 +45,36 @@ Dl = double(jacobian(h, u));
 % Cl = double(jacobian(h, x'));
 % Dl = double(jacobian(h, u));
 
-lSys = ss(Al,Bl,Cl,Dl);
-ldSys = c2d(lSys, 1);
-x0 = [1 0 Tf Tf]';
+lSysModule = ss(Al,Bl,Cl,Dl);
+ldSysModule = c2d(lSysModule, 1);
+% x0 = [1 0 Tf Tf]';
 
+%%
+% x = x0(1:4);
+% 
+% figure(3);clf;
+% for k = 1:28799
+% % x(:,k+1) = linSysModule.A*x(:,k) + linSysModule.B*testC(k);
+% x(:,k+1) = linsys19.A*x(:,k) + linsys19.B*testC(k);
+% 
+% if mod(k, 1000) == 0
+% subplot(4,1,1);
+% plot(x(1,:))
+% subplot(4,1,2);
+% plot(x(2,:))
+% subplot(4,1,3);
+% plot(x(3,:))
+% subplot(4,1,4);
+% plot(x(4,:))
+% pause(0.01)
+% end
+% end
+% % figure(1);clf;
+% % subplot(4,1,1);
+% % plot(x(1,:))
+% % subplot(4,1,2);
+% % plot(x(2,:))
+% % subplot(4,1,3);
+% % plot(x(3,:))
+% % subplot(4,1,4);
+% % plot(x(4,:))

@@ -1,6 +1,6 @@
 % Initialize parameters
 num_cycles = 1;    % Number of cycles
-duration_39 = 3600*6; % Duration of 39 Amperes in seconds
+duration_39 = 3600*4; % Duration of 39 Amperes in seconds
 rest_time = duration_39;   % Additional rest time after each cycle in seconds (can be changed)
 
 % Initialize vectors
@@ -14,7 +14,7 @@ current_time = 0;
 for cycle = 1:num_cycles
     % Append 39 Amperes segment
     moduleParameterTime = [moduleParameterTime, current_time, current_time + duration_39];
-    moduleParameterCurrent = [moduleParameterCurrent, 26, 26];
+    moduleParameterCurrent = [moduleParameterCurrent, 39, 39];
     
     % Increment the current time by 1440 seconds
     current_time = current_time + duration_39;
