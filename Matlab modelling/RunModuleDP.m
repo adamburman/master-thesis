@@ -1,5 +1,5 @@
-N = 500;  % Number of decision variables
-holdTime = 20;  % Duration each current value is held
+N = 200;  % Number of decision variables
+holdTime = 200;  % Duration each current value is held
 orderHold = 0;
 initialGuess = zeros(1, N);
 
@@ -13,8 +13,9 @@ else
     initialGuess(1:length(initialCurrentGuessDP)) = initialCurrentGuessDP;
 end
 
-initialGuess = 32.3413 * ones(1, N);
-initialGuess(1:5) = 39*ones(1,5);
+initialGuess = 10*ones(1, N);
+initialGuess(1:35) = 40*ones(1,35);
+% initialGuess = 
 
 A = [];
 b = [];
@@ -41,29 +42,31 @@ options = optimoptions('fmincon', 'Display', 'iter', ...
     'MaxIterations', 1e4, ...
     'UseParallel', true);
 
-optVars = fmincon(@(I) DPCostFunction(I, holdTime, orderHold), initialGuess, A, b, Aeq, beq, lb, ub, @(I) DPConstraints(I, holdTime, orderHold), options);
+optVars = fmincon(@(I) DPModuleCostFunction(I, holdTime, orderHold), initialGuess, A, b, Aeq, beq, lb, ub, @(I) DPModuleConstraints(I, holdTime, orderHold), options);
 
-DPSolution = repelem(optVars, holdTime);
+DPModuleSolution = repelem(optVars, holdTime);
 %%
 
 figure(1); clf; hold on;
 plot(repelem(initialGuess, holdTime), '--k', 'linewidth', 1);
-plot(DPSolution, 'r', 'LineWidth', 1);
+plot(DPModuleSolution, 'r', 'LineWidth', 1);
 legend('Initial guess', 'Solver output');
 
 x0 = [1 0 20 20 1]';
 x = x0;
 
 for k = 2:N * holdTime
-    x(:, k) = DPBatteryDynamics(x(:, k - 1), DPSolution(k), 1);
+    x(:, k) = DPBatteryModuleDynamics(x(:, k - 1), DPModuleSolution(k), 1);
 end
 
 figure(2); clf; titleStrings = {'SoC', 'V1', 'Ts', 'Tc', 'SoE'};
 for i = 1:5
     subplot(6, 1, i);
-    plot(x(i, :));
+    plot(x(i, :),'LineWidth',1);
     title(titleStrings{i});
 end
 subplot(6, 1, 6);
-plot(DPSolution);
+plot(DPModuleSolution);
 title('DP Solution');
+
+playCompletionSound();

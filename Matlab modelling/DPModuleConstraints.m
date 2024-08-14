@@ -13,7 +13,7 @@ if orderHold == 0
 
     % Dynamics with zero-order hold
     for k = 2:N * holdTime
-        x(:, k) = DPBatteryDynamics(x(:, k-1), I(k-1), deltaT);
+        x(:, k) = DPBatteryModuleDynamics(x(:, k-1), I(k-1), deltaT);
 
         % Add temperature constraint (core temperature should be <= TMax)
         c = [c; x(4, k) - TMax];
@@ -46,7 +46,7 @@ elseif orderHold == 1
 
     % Dynamics with linear interpolation
     for k = 2:totalSteps
-        x(:, k) = DPBatteryDynamics(x(:, k-1), I_expanded(k-1), deltaT);
+        x(:, k) = DPBatteryModuleDynamics(x(:, k-1), I_expanded(k-1), deltaT);
 
         % Add temperature constraint (core temperature should be <= TMax)
         c = [c; x(4, k) - TMax];

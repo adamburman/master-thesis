@@ -8,7 +8,7 @@ if orderHold == 0
 
     % Apply dynamics over extended time due to zero-order hold
     for k = 2:N * holdTime
-        x(:, k) = DPBatteryDynamics(x(:, k - 1), I(k - 1), deltaT);
+        x(:, k) = DPBatteryModuleDynamics(x(:, k - 1), I(k - 1), deltaT);
     end
 
     % Find the first index where SoE is zero or below
@@ -41,7 +41,7 @@ elseif orderHold == 1
 
     % Apply dynamics over expanded time with linear interpolation
     for k = 2:totalSteps
-        x(:, k) = DPBatteryDynamics(x(:, k - 1), I(k - 1), deltaT);
+        x(:, k) = DPBatteryModuleDynamics(x(:, k - 1), I(k - 1), deltaT);
     end
 
     % Find the first index where SoE is zero or below

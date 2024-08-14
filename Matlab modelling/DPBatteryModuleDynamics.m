@@ -19,7 +19,7 @@ function xNext = DPBatteryDynamics(x, u, deltaT)
     C1 = 174.354594213373;
     ENom =  24521235.1893945;
 
-    soc_ocv_coefficients = [-2.0713 4.5787 -2.7974 0.9751 3.4939]';
+    soc_ocv_coefficients = [-24.9533 55.1604 -33.8647 11.9152 41.5814]';
 
     Ad = [1 0 0 0;...
           0 0.203994363431329 0 0;...
@@ -130,3 +130,37 @@ end
 %     plot(MPCSolution(:));
 %     title('MPC Solution');
 % end
+
+
+
+% x = x0(1:4);
+% x = [1 0 20 20 1]';
+% figure(2);clf;
+% for k = 1:30696
+% % x(:,k+1) = linSysModule.A*x(:,k) + linSysModule.B*((k<5500)*40+(k>=5500)*IBar);%testC(k);
+% % x(:,k+1) = linsys34.A*x(:,k) + linsys34.B*((k<5500)*40+(k>=5500)*IBar);%testC(k);
+% x(:,k+1) = DPBatteryModuleDynamics(x(:,k), ((k<5500)*40+(k>=5500)*IBar), 1);
+% % x(:,k+1) = ldSysModule.A*x(:,k) + ldSysModule.B*((k<5500)*40+(k>=5500)*IBar);%testC(k);
+% % x(:,k+1) = linSys.A*x(:,k) + linSys.B*((k<5500)*40+(k>=5500)*IBar);%testC(k);
+% 
+% if mod(k, 1000) == 0
+% subplot(4,1,1);
+% plot(x(1,:))
+% subplot(4,1,2);
+% plot(x(2,:))
+% subplot(4,1,3);
+% plot(x(3,:))
+% subplot(4,1,4);
+% plot(x(4,:))
+% pause(0.01)
+% end
+% end
+% figure(1);clf;
+% subplot(4,1,1);
+% plot(x(1,:))
+% subplot(4,1,2);
+% plot(x(2,:))
+% subplot(4,1,3);
+% plot(x(3,:))
+% subplot(4,1,4);
+% plot(x(4,:))
