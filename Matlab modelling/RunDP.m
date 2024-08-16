@@ -67,3 +67,4 @@ end
 subplot(6, 1, 6);
 plot(DPSolution);
 title('DP Solution');
+playCompletionSound();

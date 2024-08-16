@@ -46,7 +46,7 @@ if t == 0
     %     0.06888];
 
 
-    Cd = [1 0 0 0 0;0 0 1 0 0];
+    Cd = [0 0 0 0 1;0 0 1 0 0];
     terminalPenaltyMatrix = [0 0 0 0 1];
     Ts = 1;
     [nx, nu] = size(Bd);
