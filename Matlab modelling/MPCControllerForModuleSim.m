@@ -47,7 +47,7 @@ if t == 0
     % ENom =  992623.375585428;
     % R0 = 0.0099131;
     % soc_ocv_coefficients = [-2.0713 4.5787 -2.7974 0.9751 3.4939]';
-    deltaT = 500;
+    deltaT = 5;
       Ad = [1 0 0 0;
                          0 9.15833994693067e-70 0 0;
                          0 0.000656952709364753 0.56552138106102 0.164795504405946;
@@ -68,6 +68,38 @@ Bd = [
     0.0122021651401997
 ];
 
+%50s
+% Define the matrix 'Ad'
+Ad = [
+    1, 0, 0, 0;
+    0, 6.2027022632556e-10, 0, 0;
+    0, 0.00266683367332118, 0.701417227678209, 0.112829501824388;
+    0, 0.0245823763965112, 0.0013907224677911, 0.998446753053842
+];
+
+% Define the vector 'Bd'
+Bd = [
+   -8.9031339031339e-05;
+    0.00203854442302985;
+    0.000115819611395861;
+    0.00197730166261187
+];
+
+%5s
+Ad = [
+    1, 0, 0, 0;
+    0, 0.120021235615572, 0, 0;
+    0, 0.000190551076740806, 0.965145286127985, 0.0131775127675528;
+    0, 0.0216617463294798, 0.00016242439059922, 0.999835773098934
+];
+
+% Define the vector 'Bd'
+Bd = [
+   -8.9031339031339e-06;
+    0.00179387580363326;
+    9.56368038926026e-07;
+    0.000158727031983218
+];
 
     % Lower sample rate
     % Ad = [1 0 0 0;...
@@ -87,9 +119,9 @@ Bd = [
 
     % Define data for MPC controller
     N = 150;
-    Q = diag([1e2 1e1]);
+    Q = diag([1e3 1e2]);
     R = 1e0;
-    W = 1e3;
+    W = 1e4;
 
     % Avoid explosion of internally defined variables in YALMIP
     yalmip('clear')
@@ -134,7 +166,7 @@ Bd = [
     [uout,problem] = Controller({currentr, currentx});
     % uout = uout{1};
     if problem
-        % uout = 0;
+        uout = 0;
        % Fix!
     end
 
@@ -143,7 +175,7 @@ else
     [uout,problem] = Controller({currentr, currentx});
     % uout = uout{1};
     if problem
-        % uout = 0;
+        uout = 0;
       % Debug, analyze, fix!
     end 
 end

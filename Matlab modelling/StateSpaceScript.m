@@ -13,13 +13,13 @@
 %     -R1/C1 0 0 0;...
 %     ]
 
-
+%%
 % Operating point, starting with TcBar = 40 Centigrade
 TcBar = 35;
 TsBar = (Ru*TcBar + Rc*Tf) / (Ru+Rc);
 IBar = sqrt(Cc*(TcBar - TsBar) / (Rc*Cc*(R1+R0)));
 V1Bar = R1*IBar;
-
+%%
 fprintf(sprintf('Operating points:\nV1 = %.4f\nTs = %.4f\nTc = %.4f\nI = %.4f\n', V1Bar, TsBar, TcBar, IBar))
 
 syms SoC V1 Ts Tc I
