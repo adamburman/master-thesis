@@ -47,7 +47,27 @@ if t == 0
     % ENom =  992623.375585428;
     % R0 = 0.0099131;
     % soc_ocv_coefficients = [-2.0713 4.5787 -2.7974 0.9751 3.4939]';
-    deltaT = 1;
+    deltaT = 500;
+      Ad = [1 0 0 0;
+                         0 9.15833994693067e-70 0 0;
+                         0 0.000656952709364753 0.56552138106102 0.164795504405946;
+                         0 0.00399305972173024 0.00255058338914636 0.996955204802277];
+Bd = [-0.000178062678062678 0.00360795873336597 0.000219600401057448 0.00244140524681879]';
+% 500s
+Ad = [
+    1,    0,    0,    0;
+    0,    0,    0,    0;
+    0, 0.00141965040460652, 0.0594380419361861, 0.354526999792495;
+    0, 0.00395552542977103, 0.00548710767283533, 0.987587991726148
+];
+
+Bd = [
+   -0.00089031339031339;
+    0.00360795873336597;
+    0.00310513296692454;
+    0.0122021651401997
+];
+
 
     % Lower sample rate
     % Ad = [1 0 0 0;...
@@ -60,16 +80,16 @@ if t == 0
     %     0.06888];
 
 
-    Cd = [1 0 0 0 0;0 0 1 0 0];
+    Cd = [0 0 0 0 1;0 0 1 0 0];
     terminalPenaltyMatrix = [0 0 0 0 1];
     Ts = 1;
     [nx, nu] = size(Bd);
 
     % Define data for MPC controller
-    N = 40;
-    Q = diag([1e2 1e2]);
+    N = 150;
+    Q = diag([1e2 1e1]);
     R = 1e0;
-    W = 1e7;
+    W = 1e3;
 
     % Avoid explosion of internally defined variables in YALMIP
     yalmip('clear')
@@ -99,7 +119,7 @@ if t == 0
                 objective = objective + (terminalPenaltyMatrix*x{k})'*W*(terminalPenaltyMatrix*x{k});
         end
     constraints = [constraints, 0 <= u{k} <= 40];
-    constraints = [constraints, 0 <= x{k+1}(3) <= 40]; % Constraint on the third state (T_s)
+    constraints = [constraints, 0 <= x{k+1}(4) <= 40]; % Constraint on the third state (T_s)
     % constraints = [constraints, 0 <= x{k+1}(4) <= 50]; % Constraint on the fourth state (T_c)
     end
 
@@ -114,6 +134,7 @@ if t == 0
     [uout,problem] = Controller({currentr, currentx});
     % uout = uout{1};
     if problem
+        % uout = 0;
        % Fix!
     end
 
@@ -122,6 +143,7 @@ else
     [uout,problem] = Controller({currentr, currentx});
     % uout = uout{1};
     if problem
+        % uout = 0;
       % Debug, analyze, fix!
     end 
 end
