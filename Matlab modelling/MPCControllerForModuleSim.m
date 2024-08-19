@@ -119,7 +119,7 @@ Bd = [
 
     % Define data for MPC controller
     N = 150;
-    Q = diag([1e3 1e2]);
+    Q = diag([1e4 1e2]);
     R = 1e0;
     W = 1e4;
 
