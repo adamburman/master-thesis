@@ -122,3 +122,26 @@ end
 %     plot(MPCSolution(:));
 %     title('MPC Solution');
 % end
+% 
+% figure(1); clf; hold on;
+% I = repelem(initialGuess, holdTime);
+% plot(repelem(initialGuess, holdTime), '--k', 'linewidth', 1);
+% plot(DPModuleSolution, 'r', 'LineWidth', 1);
+% legend('Initial guess', 'Solver output');
+% 
+% x0 = [1 0 20 20]';
+% x = x0;
+% 
+% for k = 2:5000
+%     x(:, k) = linsys5s.A*x(1:4, k - 1) + linsys5s.B*I(5*k);
+% end
+% 
+% figure(2); clf; titleStrings = {'SoC', 'V1', 'Ts', 'Tc', 'SoE'};
+% for i = 1:5
+%     subplot(6, 1, i);
+%     plot(x(i, :),'LineWidth',1);
+%     title(titleStrings{i});
+% end
+% subplot(6, 1, 6);
+% plot(DPModuleSolution);
+% title('DP Solution');
