@@ -53,7 +53,7 @@ if t == 0
 
     % Define data for MPC controller
     N = 40;
-    Q = diag([100 100]);
+    Q = diag([1e4 1e2]);
     R = 1;
     W = 1000;
 
@@ -109,5 +109,6 @@ else
     % uout = uout{1};
     if problem
       % Debug, analyze, fix!
+      uout = 0;
     end 
 end

@@ -20,7 +20,7 @@ function playCompletionSound()
     end
     
     % Normalize the sound data
-    soundData = 0.5 * soundData / max(abs(soundData));  % Scale to medium volume
+    soundData = 0.05 * soundData / max(abs(soundData));  % Scale to medium volume
     
     % Play the sound and wait until playback is complete
     soundsc(soundData, fs);

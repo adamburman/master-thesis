@@ -15,7 +15,7 @@
 
 %%
 % Operating point, starting with TcBar = 40 Centigrade
-TcBar = 35;
+TcBar = 40;
 TsBar = (Ru*TcBar + Rc*Tf) / (Ru+Rc);
 IBar = sqrt(Cc*(TcBar - TsBar) / (Rc*Cc*(R1+R0)));
 V1Bar = R1*IBar;

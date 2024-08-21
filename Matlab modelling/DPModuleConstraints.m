@@ -1,4 +1,4 @@
-function [c, ceq] = DPConstraints(I, holdTime, orderHold)
+function [c, ceq] = DPModuleConstraints(I, holdTime, orderHold)
 if orderHold == 0
     % Initial state of the system
     x(:, 1) = [1 0 20 20 1]'; % [SoC, V1, Ts, Tc, SoE]
@@ -29,7 +29,7 @@ elseif orderHold == 1
     x(:, 1) = [1 0 20 20 1]'; % [SoC, V1, Ts, Tc, SoE]
     N = length(I); % Number of control intervals
     TMax = 40; % Maximum allowable core temperature
-    deltaT = 1; % Time step for dynamics
+    deltaT = 5; % Time step for dynamics
 
     % Calculate the total simulation steps
     totalSteps = N * holdTime;

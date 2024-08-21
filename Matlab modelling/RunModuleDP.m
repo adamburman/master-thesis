@@ -1,5 +1,5 @@
-N = 200;  % Number of decision variables
-holdTime = 200;  % Duration each current value is held
+N = 250;  % Number of decision variables
+holdTime = 140;  % Duration each current value is held
 orderHold = 0;
 initialGuess = zeros(1, N);
 
@@ -14,7 +14,12 @@ else
 end
 
 initialGuess = 10*ones(1, N);
-initialGuess(1:35) = 40*ones(1,35);
+% initialGuess = 12*ones(1,N);
+initialGuess(1:26) = 40*ones(1,26);
+% initialGuess(16:20) = linspace(40,12,5);
+% initialGuess = linspace(26,21,N);
+% initialGuess(1:15) = 40*ones(1,15);
+% initialGues(1:10) = [40 40 40 40 40 40 40 40 12 12];
 % initialGuess = 
 
 A = [];
@@ -38,7 +43,7 @@ for k = 1:(N - 1)
 end
 
 options = optimoptions('fmincon', 'Display', 'iter', ...
-    'MaxFunctionEvaluations', 200 * N, ...
+    'MaxFunctionEvaluations', 50 * N, ...
     'MaxIterations', 1e4, ...
     'UseParallel', true);
 
@@ -69,4 +74,4 @@ subplot(6, 1, 6);
 plot(DPModuleSolution);
 title('DP Solution');
 
-playCompletionSound();
+% playCompletionSound();

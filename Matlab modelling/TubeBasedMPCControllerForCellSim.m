@@ -26,7 +26,7 @@ if t == 0
 
     % Define data for MPC controller
     N = 40; % Prediction horizon
-    Q = diag([100 100]); % Weight for states in objective
+    Q = diag([1e4 1e2]); % Weight for states in objective
     R = 1; % Weight for control input in objective
     W = 1000; % Weight for terminal state
 
@@ -34,7 +34,7 @@ if t == 0
     disturbanceBound = .4; % Maximum expected disturbance magnitude for each state
 
     % Control gain K for robust control using dlqr
-    Q_K = diag([100 0 100 0]); % Q for calculating control gain K
+    Q_K = diag([1e4 0 1e2 0]); % Q for calculating control gain K
     R_K = R; % Same R for calculating control gain K
     K = dlqr(Ad, Bd, Q_K, R_K); % Control gain
 
@@ -70,7 +70,7 @@ if t == 0
         if k < N
             % Apply tube-based constraint tightening
             % Constraints on control input changes with disturbance impact
-            constraints = [constraints, -1 + disturbanceImpact' <= (u{k+1} - u{k}) <= 1 - disturbanceImpact'];
+            constraints = [constraints, -1 <= (u{k+1} - u{k}) <= 1];
         else
             % Terminal cost for the last state
             objective = objective + (terminalPenaltyMatrix*x{k})'*W*(terminalPenaltyMatrix*x{k});
@@ -80,7 +80,7 @@ if t == 0
         constraints = [constraints, 0 <= u{k} <= 40];
 
         % Apply constraints on the third state (T_s) considering disturbance
-        constraints = [constraints, 0 + disturbanceImpact(4) <= x{k+1}(4) <= 40 - disturbanceImpact(3)];
+        constraints = [constraints, x{k+1}(4) <= 40 - disturbanceImpact(4)];
 
         % Apply constraints on the SoE (fifth state)
         % constraints = [constraints, 0 <= x{k+1}(5) <= 100]; % Example bounds for SoE
